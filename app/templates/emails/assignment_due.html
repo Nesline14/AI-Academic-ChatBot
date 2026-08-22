@@ -1,0 +1,34 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_content %}
+<div>
+  <span class="badge badge-danger">Upcoming Deadline Reminder</span>
+  <h1 class="title">Assignment Due Soon: {{ assignment.title }}</h1>
+  
+  <p>Hello <strong>{{ user.full_name }}</strong>,</p>
+  <p>This is a friendly reminder that your assignment for <strong>{{ assignment.subject.name }}</strong> is due very soon.</p>
+  
+  <div class="info-box" style="border-left: 4px solid #ef4444; background-color: #fff1f2;">
+    <div class="info-row" style="border-bottom: 1px solid #fee2e2;">
+      <span class="info-label" style="color: #991b1b;">Deadline:</span>
+      <span class="info-value" style="color: #b91c1c; font-size: 16px;">{{ assignment.due_date.strftime('%A, %b %d, %Y at %I:%M %p') }}</span>
+    </div>
+    <div class="info-row" style="border-bottom: 1px solid #fee2e2;">
+      <span class="info-label" style="color: #991b1b;">Subject:</span>
+      <span class="info-value" style="color: #991b1b;">{{ assignment.subject.name }} ({{ assignment.subject.code }})</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label" style="color: #991b1b;">Class:</span>
+      <span class="info-value" style="color: #991b1b;">{{ assignment.classroom.name }}</span>
+    </div>
+  </div>
+
+  <p>Please make sure to submit your work before the deadline to avoid late submission penalties.</p>
+
+  <div style="text-align: center; margin-top: 24px;">
+    <a href="{{ base_url }}/assignments/{{ assignment.id }}" class="btn-action" style="background-color: #dc2626;">
+      Submit Assignment Now
+    </a>
+  </div>
+</div>
+{% endblock %}

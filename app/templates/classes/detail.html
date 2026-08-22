@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ classroom.name }} Details - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-mortarboard text-primary me-2"></i>{{ classroom.name }}</h3>
+    <p class="text-muted small mb-0">
+      <span class="badge bg-primary-subtle text-primary me-2">Sem {{ classroom.semester }} - Sec {{ classroom.section }}</span>
+      <span class="badge bg-light text-dark border me-2"><i class="bi bi-building"></i> {{ classroom.department.name if classroom.department else 'Engineering' }}</span>
+      <span class="badge bg-light text-dark border"><i class="bi bi-person-badge"></i> Mentor: {{ classroom.teacher.full_name if classroom.teacher else 'Unassigned' }}</span>
+    </p>
+  </div>
+  <div class="mt-3 mt-md-0 d-flex gap-2">
+    <a href="{{ url_for('attendance.mark', class_id=classroom.id) }}" class="btn btn-success btn-sm"><i class="bi bi-check2-square me-1"></i> Mark Attendance</a>
+    <a href="{{ url_for('classes.index') }}" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Timetable Schedule Section -->
+  <div class="col-lg-7">
+    <div class="card card-custom mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center bg-white">
+        <span class="fw-bold"><i class="bi bi-calendar3 me-2 text-primary"></i>Weekly Timetable Schedule</span>
+        {% if is_coordinator %}
+        <button class="btn btn-primary btn-sm py-0" data-bs-toggle="modal" data-bs-target="#addScheduleModal">+ Add Slot</button>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+        {% set day_slots = schedules_by_day.get(day, []) %}
+        <div class="border-bottom p-3">
+          <h6 class="fw-bold text-secondary mb-2 small text-uppercase">{{ day }}</h6>
+          {% if day_slots %}
+          <div class="d-flex flex-column gap-2">
+            {% for s in day_slots %}
+            <div class="d-flex justify-content-between align-items-center p-2 rounded bg-light border">
+              <div>
+                <span class="fw-bold text-primary small me-2">{{ s.start_time }} - {{ s.end_time }}</span>
+                <span class="fw-semibold small text-dark">{{ s.subject.name if s.subject else 'Subject' }}</span>
+                <span class="text-muted small ms-1">({{ s.teacher.full_name if s.teacher else 'Faculty' }})</span>
+              </div>
+              <span class="badge bg-white text-dark border">{{ s.room_number }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-muted small ps-1">No scheduled sessions.</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Roster Section -->
+  <div class="col-lg-5">
+    <div class="card card-custom mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center bg-white">
+        <span class="fw-bold"><i class="bi bi-people me-2 text-primary"></i>Enrolled Students ({{ enrolled_students | length }})</span>
+        {% if is_coordinator and available_students %}
+        <button class="btn btn-outline-primary btn-sm py-0" data-bs-toggle="modal" data-bs-target="#enrollStudentModal">+ Enroll</button>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% if enrolled_students %}
+        <div class="list-group list-group-flush">
+          {% for s in enrolled_students %}
+          <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+            <div>
+              <div class="fw-semibold small text-dark">{{ s.full_name }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">Roll: {{ s.identifier or 'STU-' ~ s.id }} &bull; {{ s.email }}</div>
+            </div>
+            {% if is_coordinator %}
+            <form method="POST" action="{{ url_for('classes.remove_student', class_id=classroom.id, student_id=s.id) }}" onsubmit="return confirm('Remove student from this class?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Remove"><i class="bi bi-trash"></i></button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-3 text-center text-muted small">No students enrolled yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Schedule Slot -->
+{% if is_coordinator %}
+<div class="modal fade" id="addScheduleModal" tabindex="-1" aria-labelledby="addScheduleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('classes.add_schedule', class_id=classroom.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="addScheduleModalLabel">Add Timetable Slot</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body row g-3">
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Subject *</label>
+            <select class="form-select" name="subject_id" required>
+              <option value="">-- Select Subject --</option>
+              {% for sub in subjects %}
+              <option value="{{ sub.id }}">{{ sub.name }} ({{ sub.code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Instructor / Faculty *</label>
+            <select class="form-select" name="teacher_id" required>
+              <option value="">-- Select Teacher --</option>
+              {% for t in teachers %}
+              <option value="{{ t.id }}">{{ t.full_name }} ({{ t.identifier }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Day of Week *</label>
+            <select class="form-select" name="day_of_week" required>
+              {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+              <option value="{{ d }}">{{ d }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Start Time *</label>
+            <input type="text" class="form-control" name="start_time" placeholder="e.g. 09:00 AM" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">End Time *</label>
+            <input type="text" class="form-control" name="end_time" placeholder="e.g. 10:00 AM" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Room / Lab Number</label>
+            <input type="text" class="form-control" name="room_number" placeholder="e.g. LH-201 or Lab-3" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Add Slot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Enroll Student -->
+<div class="modal fade" id="enrollStudentModal" tabindex="-1" aria-labelledby="enrollStudentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('classes.add_student', class_id=classroom.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="enrollStudentModalLabel">Enroll Student</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label small fw-semibold">Select Student to Enroll *</label>
+          <select class="form-select" name="student_id" required>
+            <option value="">-- Choose Student --</option>
+            {% for s in available_students %}
+            <option value="{{ s.id }}">{{ s.full_name }} ({{ s.identifier }}) - Sem {{ s.semester }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Enroll Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

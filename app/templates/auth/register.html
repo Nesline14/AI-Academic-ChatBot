@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Register - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center py-4">
+  <div class="col-12 col-md-10 col-lg-7">
+    <div class="card card-custom p-4 p-sm-5 shadow-sm">
+      <div class="text-center mb-4">
+        <h4 class="fw-bold mb-1">Create Your CampusConnect Account</h4>
+        <p class="text-muted small">Join the student academic and campus management portal</p>
+      </div>
+
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label for="full_name" class="form-label fw-semibold">Full Name *</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" class="form-control" id="full_name" name="full_name" placeholder="John Doe" required>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="email" class="form-label fw-semibold">Email Address *</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input type="email" class="form-control" id="email" name="email" placeholder="john@example.com" required>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="role" class="form-label fw-semibold">Account Role *</label>
+            <select class="form-select" id="role" name="role" required>
+              <option value="student" selected>Student</option>
+              <option value="teacher">Teacher / Faculty</option>
+              <option value="coordinator">Club Coordinator</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="identifier" class="form-label fw-semibold">Student / Employee ID</label>
+            <input type="text" class="form-control" id="identifier" name="identifier" placeholder="e.g. STU-2026-001">
+          </div>
+
+          <div class="col-md-6">
+            <label for="department_id" class="form-label fw-semibold">Academic Department</label>
+            <select class="form-select" id="department_id" name="department_id">
+              <option value="">Select Department</option>
+              {% for dept in departments %}
+              <option value="{{ dept.id }}">{{ dept.name }} ({{ dept.code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="semester" class="form-label fw-semibold">Current Semester</label>
+            <select class="form-select" id="semester" name="semester">
+              {% for sem in range(1, 9) %}
+              <option value="{{ sem }}">Semester {{ sem }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="phone" class="form-label fw-semibold">Phone Number</label>
+            <input type="tel" class="form-control" id="phone" name="phone" placeholder="+1 (555) 000-0000">
+          </div>
+
+          <div class="col-md-6">
+            <label for="password" class="form-label fw-semibold">Password *</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input type="password" class="form-control" id="password" name="password" placeholder="Minimum 6 characters" required>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="confirm_password" class="form-label fw-semibold">Confirm Password *</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+              <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+            <i class="bi bi-check2-circle me-1"></i> Register Account
+          </button>
+        </div>
+
+        <div class="text-center small text-muted mt-3">
+          Already registered? <a href="{{ url_for('auth.login') }}" class="fw-semibold text-decoration-none">Sign in here</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

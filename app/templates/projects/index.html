@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Projects - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-kanban text-primary me-2"></i>Academic Projects Repository</h3>
+    <p class="text-muted small mb-0">Track capstone initiatives, student research, and software engineering projects</p>
+  </div>
+  <div class="mt-3 mt-md-0">
+    <a href="{{ url_for('projects.create') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-circle me-1"></i> Submit Project Proposal
+    </a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card card-custom p-3 mb-4">
+  <form method="GET" action="{{ url_for('projects.index') }}" class="row g-3 align-items-center">
+    <div class="col-md-4">
+      <select class="form-select form-select-sm" name="category" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
+        <option value="">All Statuses</option>
+        {% for st in statuses %}
+        <option value="{{ st }}" {% if selected_status == st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+      <a href="{{ url_for('projects.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i></a>
+    </div>
+  </form>
+</div>
+
+<!-- Projects Grid -->
+<div class="row g-4">
+  {% if projects %}
+    {% for p in projects %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-custom h-100 p-4 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-light text-dark border">{{ p.category }}</span>
+            <span class="badge bg-{{ p.status_badge_class }}">{{ p.status }}</span>
+          </div>
+
+          <h5 class="fw-bold text-dark mb-2">
+            <a href="{{ url_for('projects.detail', project_id=p.id) }}" class="text-decoration-none text-dark">
+              {{ p.title }}
+            </a>
+          </h5>
+
+          <p class="text-muted small mb-3 text-truncate" style="max-height: 48px;">
+            {{ p.description }}
+          </p>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span>Progress:</span>
+              <span class="fw-bold text-dark">{{ p.progress_percentage }}%</span>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar {% if p.progress_percentage == 100 %}bg-success{% else %}bg-primary{% endif %}" role="progressbar" style="width: {{ p.progress_percentage }}%;"></div>
+            </div>
+          </div>
+
+          <div class="small bg-light p-2 rounded mb-3">
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Lead / Creator:</span>
+              <span class="fw-semibold text-dark">{{ p.creator.full_name if p.creator else 'Student' }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Mentor / Guide:</span>
+              <span class="fw-semibold text-dark">{{ p.guide.full_name if p.guide else 'Unassigned' }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Team Members:</span>
+              <span class="badge bg-primary-subtle text-primary">{{ p.members | length }} Collaborators</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <a href="{{ url_for('projects.detail', project_id=p.id) }}" class="btn btn-outline-primary btn-sm w-100">
+            View Project Details &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="col-12">
+    <div class="card card-custom p-5 text-center text-muted">
+      <i class="bi bi-kanban fs-1 text-secondary mb-2"></i>
+      <h5>No Projects Found</h5>
+      <p class="small mb-0">No academic projects matching the selected criteria.</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Examination Results & Grading - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-award text-info me-2"></i>Results & Grade Registry</h3>
+    <p class="text-muted small mb-0">Record, calculate, and evaluate academic student marks</p>
+  </div>
+  {% if current_user.is_teacher or current_user.is_admin %}
+  <div class="mt-3 mt-md-0">
+    <a href="{{ url_for('results.add_result') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-circle me-1"></i> Enter Student Marks
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="card card-custom p-3 mb-4">
+  <form method="GET" action="{{ url_for('results.index') }}" class="row g-3 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Class Section</label>
+      <select class="form-select form-select-sm" name="class_id">
+        <option value="">All Classes</option>
+        {% for c in classes %}
+        <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>{{ c.name }} (Sem {{ c.semester }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Subject</label>
+      <select class="form-select form-select-sm" name="subject_id">
+        <option value="">All Subjects</option>
+        {% for s in subjects %}
+        <option value="{{ s.id }}" {% if selected_subject_id == s.id %}selected{% endif %}>{{ s.name }} ({{ s.code }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Semester</label>
+      <select class="form-select form-select-sm" name="semester">
+        <option value="">All Semesters</option>
+        {% for sem in range(1, 9) %}
+        <option value="{{ sem }}" {% if selected_sem == sem %}selected{% endif %}>Semester {{ sem }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-filter"></i> Apply Filter</button>
+      <a href="{{ url_for('results.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i></a>
+    </div>
+  </form>
+</div>
+
+<!-- Results Records Table -->
+<div class="card card-custom">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-list-ol me-2"></i>Published Results ({{ results | length }} entries)</span>
+  </div>
+  <div class="card-body p-0">
+    {% if results %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Student</th>
+            <th>Roll / ID</th>
+            <th>Subject</th>
+            <th>Sem</th>
+            <th>Internal (30)</th>
+            <th>Assignment (20)</th>
+            <th>Exam (50)</th>
+            <th>Total (100)</th>
+            <th>Grade</th>
+            <th>GPA</th>
+            <th>Evaluated By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr>
+            <td class="small fw-semibold">{{ r.student.full_name if r.student else 'Unknown' }}</td>
+            <td class="small text-muted">{{ r.student.identifier if r.student else 'N/A' }}</td>
+            <td>
+              <div class="small fw-semibold">{{ r.subject.name if r.subject else 'Subject' }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{ r.subject.code if r.subject else '' }}</div>
+            </td>
+            <td class="small text-muted">Sem {{ r.semester }}</td>
+            <td class="small">{{ r.internal_marks }}</td>
+            <td class="small">{{ r.assignment_marks }}</td>
+            <td class="small">{{ r.exam_marks }}</td>
+            <td class="small fw-bold text-dark">{{ r.total_marks }} / {{ r.max_marks }}</td>
+            <td><span class="badge bg-{{ r.grade_badge_class }}">{{ r.grade }}</span></td>
+            <td class="small fw-bold text-primary">{{ r.gpa_points }}</td>
+            <td class="small text-muted">{{ r.teacher.full_name if r.teacher else 'Faculty' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-award fs-2 text-secondary d-block mb-2"></i>
+      No academic results found matching current criteria.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

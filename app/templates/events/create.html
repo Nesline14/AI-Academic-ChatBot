@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Campus Event - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-calendar-plus text-primary me-2"></i>Schedule Campus Event</h3>
+    <p class="text-muted small mb-0">Publish university symposium, hackathon, workshop, or club activity</p>
+  </div>
+  <a href="{{ url_for('events.index') }}" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card card-custom p-4 shadow-sm">
+      <form method="POST" action="{{ url_for('events.create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Event Title *</label>
+            <input type="text" class="form-control" name="title" placeholder="e.g. Annual Tech Innovation Summit 2026" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Category *</label>
+            <select class="form-select" name="category" required>
+              {% for cat in categories %}
+              <option value="{{ cat }}">{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Event Date *</label>
+            <input type="date" class="form-control" name="event_date" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Start Time *</label>
+            <input type="text" class="form-control" name="start_time" placeholder="e.g. 10:00 AM" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">End Time (Optional)</label>
+            <input type="text" class="form-control" name="end_time" placeholder="e.g. 04:30 PM">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Venue / Location *</label>
+            <input type="text" class="form-control" name="location" placeholder="e.g. Main Auditorium / Lab 3" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Max Participant Capacity</label>
+            <input type="number" class="form-control" name="max_participants" value="150" min="10">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Organizing Club / Department</label>
+            <input type="text" class="form-control" name="organizing_body" placeholder="e.g. Coding & AI Society / CSE Dept">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Event Description & Agenda *</label>
+            <textarea class="form-control" name="description" rows="5" placeholder="Specify event agenda, guest speakers, eligibility, prerequisites, and prizes..." required></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 text-end">
+          <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+            <i class="bi bi-calendar-check me-1"></i> Publish Campus Event
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

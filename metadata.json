@@ -1,0 +1,6 @@
+{
+  "name": "CampusConnect",
+  "description": "A complete Student Academic Management System built with Flask, Bootstrap 5, SQLite, and SQLAlchemy featuring role-based dashboards, attendance, results, assignments, events, projects, clubs, and an intelligent student chatbot.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

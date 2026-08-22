@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{{ assignment.title }} - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-journal-code text-primary me-2"></i>{{ assignment.title }}</h3>
+    <p class="text-muted small mb-0">
+      <span class="badge bg-light text-dark border me-2">{{ assignment.classroom.name if assignment.classroom else 'Class' }}</span>
+      <span class="badge bg-light text-dark border me-2">{{ assignment.subject.name if assignment.subject else 'Subject' }}</span>
+      <span class="badge bg-light text-dark border"><i class="bi bi-person"></i> {{ assignment.teacher.full_name if assignment.teacher else 'Faculty' }}</span>
+    </p>
+  </div>
+  <div class="mt-3 mt-md-0 d-flex gap-2">
+    {% if current_user.is_teacher and (assignment.teacher_id == current_user.id or current_user.is_admin) %}
+    <a href="{{ url_for('assignments.submissions_list', assignment_id=assignment.id) }}" class="btn btn-warning btn-sm text-dark fw-semibold">
+      <i class="bi bi-people me-1"></i> Review Submissions
+    </a>
+    {% endif %}
+    <a href="{{ url_for('assignments.index') }}" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Assignment Details & Instructions -->
+  <div class="col-lg-8">
+    <div class="card card-custom p-4 mb-4">
+      <h5 class="fw-bold mb-3">Assignment Instructions</h5>
+      <div class="text-dark mb-4" style="white-space: pre-line; line-height: 1.6;">
+        {{ assignment.description }}
+      </div>
+
+      {% if assignment.attachment_path %}
+      <div class="alert alert-light border d-flex align-items-center justify-content-between">
+        <div>
+          <i class="bi bi-paperclip fs-5 me-2 text-primary"></i>
+          <span class="fw-semibold small">Reference File / Worksheet</span>
+        </div>
+        <a href="{{ url_for('static', filename='uploads/assignments/' ~ assignment.attachment_path) }}" class="btn btn-sm btn-outline-primary" download>
+          <i class="bi bi-download me-1"></i> Download
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Student Submission Form / Result Box -->
+    {% if current_user.is_student %}
+    <div class="card card-custom p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-upload me-2 text-success"></i>My Coursework Submission</h5>
+
+      {% if my_submission %}
+      <div class="alert {% if my_submission.status == 'Graded' %}alert-success{% else %}alert-info{% endif %} mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-bold">Status: {{ my_submission.status }}</span>
+          <span class="small">Submitted on {{ my_submission.submitted_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
+        </div>
+        {% if my_submission.status == 'Graded' %}
+        <div class="fs-5 fw-bold text-success mb-1">
+          Awarded Score: {{ my_submission.marks_obtained }} / {{ assignment.max_marks }} pts
+        </div>
+        {% if my_submission.feedback %}
+        <div class="small mt-2 pt-2 border-top">
+          <strong>Faculty Feedback:</strong> {{ my_submission.feedback }}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="small">Your assignment has been submitted successfully and is awaiting faculty grading.</div>
+        {% endif %}
+      </div>
+
+      <div class="bg-light p-3 rounded border mb-3">
+        <div class="fw-semibold small text-muted mb-1">Submitted Response Content:</div>
+        <div class="small text-dark" style="white-space: pre-line;">{{ my_submission.submission_text or 'No written text' }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Allow submitting or updating -->
+      <form method="POST" action="{{ url_for('assignments.submit', assignment_id=assignment.id) }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">{% if my_submission %}Update Response / Answers{% else %}Your Solution / Written Response{% endif %}</label>
+          <textarea class="form-control" name="submission_text" rows="4" placeholder="Write code explanation, problem solutions, or links...">{{ my_submission.submission_text if my_submission else '' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Upload Solution File (PDF, ZIP, CODE, DOCX)</label>
+          <input type="file" class="form-control" name="submission_file">
+        </div>
+
+        <button type="submit" class="btn btn-success px-4 py-2 fw-semibold">
+          <i class="bi bi-cloud-arrow-up me-1"></i> {% if my_submission %}Update Submission{% else %}Submit Assignment{% endif %}
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Meta Info Sidebar -->
+  <div class="col-lg-4">
+    <div class="card card-custom p-4">
+      <h6 class="fw-bold border-bottom pb-2 mb-3">Assignment Details</h6>
+
+      <div class="d-flex justify-content-between py-2 border-bottom small">
+        <span class="text-muted">Max Score:</span>
+        <span class="fw-bold text-primary">{{ assignment.max_marks }} Points</span>
+      </div>
+
+      <div class="d-flex justify-content-between py-2 border-bottom small">
+        <span class="text-muted">Deadline:</span>
+        <span class="fw-semibold {% if assignment.is_overdue %}text-danger{% else %}text-dark{% endif %}">
+          {{ assignment.due_date.strftime('%b %d, %Y %I:%M %p') }}
+        </span>
+      </div>
+
+      <div class="d-flex justify-content-between py-2 border-bottom small">
+        <span class="text-muted">Time Status:</span>
+        {% if assignment.is_overdue %}
+        <span class="badge bg-danger-subtle text-danger">Past Deadline</span>
+        {% else %}
+        <span class="badge bg-success-subtle text-success">Active & Open</span>
+        {% endif %}
+      </div>
+
+      <div class="d-flex justify-content-between py-2 small">
+        <span class="text-muted">Published On:</span>
+        <span>{{ assignment.created_at.strftime('%b %d, %Y') }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

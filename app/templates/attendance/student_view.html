@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}My Academic Attendance - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-calendar-check text-primary me-2"></i>My Attendance Record</h3>
+    <p class="text-muted small mb-0">Track your attendance metrics and subject eligibility</p>
+  </div>
+  <div>
+    <button class="btn btn-outline-primary btn-sm" onclick="window.campusBotSend('What is my attendance?')">
+      <i class="bi bi-robot me-1"></i> Ask CampusBot
+    </button>
+  </div>
+</div>
+
+<!-- Threshold Warning Banner -->
+{% if attendance_data.is_below_threshold %}
+<div class="alert alert-danger d-flex align-items-center shadow-sm mb-4" role="alert">
+  <i class="bi bi-exclamation-octagon-fill fs-3 me-3 text-danger"></i>
+  <div>
+    <h6 class="fw-bold mb-1">Academic Attendance Warning!</h6>
+    <div class="small">Your overall attendance of <strong>{{ attendance_data.overall_percentage }}%</strong> is below the mandatory university threshold of <strong>{{ attendance_data.min_threshold }}%</strong>. You are at risk of debarment from final semester exams. Please contact your subject faculty immediately.</div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Key Metrics Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card-stat">
+      <div class="text-muted small fw-semibold">Overall Attendance</div>
+      <div class="fs-3 fw-bold {% if attendance_data.is_below_threshold %}text-danger{% else %}text-success{% endif %}">
+        {{ attendance_data.overall_percentage }}%
+      </div>
+      <div class="progress mt-2" style="height: 6px;">
+        <div class="progress-bar {% if attendance_data.is_below_threshold %}bg-danger{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ attendance_data.overall_percentage }}%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-stat">
+      <div class="text-muted small fw-semibold">Total Classes Conducted</div>
+      <div class="fs-3 fw-bold text-dark">{{ attendance_data.total_classes }}</div>
+      <div class="small text-muted">Across all semester subjects</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-stat">
+      <div class="text-muted small fw-semibold">Classes Attended (Present)</div>
+      <div class="fs-3 fw-bold text-success">{{ attendance_data.attended }}</div>
+      <div class="small text-muted">{{ attendance_data.late }} sessions marked late</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card-stat">
+      <div class="text-muted small fw-semibold">Classes Missed (Absent)</div>
+      <div class="fs-3 fw-bold text-danger">{{ attendance_data.absent }}</div>
+      <div class="small text-muted">Min requirement: 75%</div>
+    </div>
+  </div>
+</div>
+
+<!-- Subject-Wise Breakdown Cards -->
+<div class="card card-custom mb-4">
+  <div class="card-header">
+    <i class="bi bi-journal-text me-2 text-primary"></i>Subject-Wise Attendance Breakdown
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Subject Code</th>
+            <th>Subject Name</th>
+            <th>Total Classes</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Late</th>
+            <th>Attendance %</th>
+            <th>Eligibility Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in attendance_data.subjects %}
+          <tr>
+            <td class="fw-semibold small">{{ sub.code }}</td>
+            <td class="fw-semibold small">{{ sub.name }}</td>
+            <td class="small">{{ sub.total }}</td>
+            <td class="small text-success fw-semibold">{{ sub.present }}</td>
+            <td class="small text-danger fw-semibold">{{ sub.absent }}</td>
+            <td class="small text-warning fw-semibold">{{ sub.late }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="progress flex-grow-1" style="height: 6px; width: 80px;">
+                  <div class="progress-bar {% if sub.percentage < 75 %}bg-danger{% else %}bg-success{% endif %}" style="width: {{ sub.percentage }}%;"></div>
+                </div>
+                <span class="small fw-bold {% if sub.percentage < 75 %}text-danger{% else %}text-success{% endif %}">{{ sub.percentage }}%</span>
+              </div>
+            </td>
+            <td>
+              {% if sub.percentage >= 75 %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i>Eligible</span>
+              {% else %}
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-triangle me-1"></i>Shortage</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Attendance History Log -->
+<div class="card card-custom">
+  <div class="card-header">
+    <i class="bi bi-clock-history me-2 text-secondary"></i>Recent Session History
+  </div>
+  <div class="card-body p-0">
+    {% if detailed_records %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Date</th>
+            <th>Subject</th>
+            <th>Class</th>
+            <th>Status</th>
+            <th>Faculty</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in detailed_records %}
+          <tr>
+            <td class="small fw-semibold">{{ r.date.strftime('%b %d, %Y') }}</td>
+            <td class="small">{{ r.subject.name if r.subject else 'General' }} ({{ r.subject.code if r.subject else '' }})</td>
+            <td><span class="badge bg-light text-dark border">{{ r.classroom.name if r.classroom else 'Class' }}</span></td>
+            <td>
+              {% if r.status == 'Present' %}
+              <span class="badge bg-success-subtle text-success">Present</span>
+              {% elif r.status == 'Absent' %}
+              <span class="badge bg-danger-subtle text-danger">Absent</span>
+              {% else %}
+              <span class="badge bg-warning-subtle text-warning">Late</span>
+              {% endif %}
+            </td>
+            <td class="small text-muted">{{ r.marked_by.full_name if r.marked_by else 'Faculty' }}</td>
+            <td class="small text-muted">{{ r.remarks or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-3 text-center text-muted small">No session records found.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

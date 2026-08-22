@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.title }} - Academic Project{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-kanban text-primary me-2"></i>{{ project.title }}</h3>
+    <p class="text-muted small mb-0">
+      <span class="badge bg-light text-dark border me-2">{{ project.category }}</span>
+      <span class="badge bg-{{ project.status_badge_class }} me-2">{{ project.status }}</span>
+      <span class="badge bg-light text-dark border"><i class="bi bi-person-badge"></i> Mentor: {{ project.guide.full_name if project.guide else 'Unassigned' }}</span>
+    </p>
+  </div>
+  <a href="{{ url_for('projects.index') }}" class="btn btn-outline-secondary btn-sm mt-3 mt-md-0">&larr; Back to Projects</a>
+</div>
+
+<div class="row g-4">
+  <!-- Main Project Info Column -->
+  <div class="col-lg-8">
+    <div class="card card-custom p-4 mb-4">
+      <h5 class="fw-bold mb-3">Project Abstract & Goals</h5>
+      <div class="text-dark fs-6 mb-4" style="white-space: pre-line; line-height: 1.8;">
+        {{ project.description }}
+      </div>
+
+      {% if project.repository_url %}
+      <div class="alert alert-light border d-flex align-items-center justify-content-between">
+        <div>
+          <i class="bi bi-github fs-5 me-2 text-dark"></i>
+          <span class="fw-semibold small">Source Code Repository</span>
+        </div>
+        <a href="{{ project.repository_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-dark">
+          <i class="bi bi-box-arrow-up-right me-1"></i> Open Repository
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Progress Bar -->
+      <div class="mb-2">
+        <div class="d-flex justify-content-between small fw-semibold text-muted mb-1">
+          <span>Overall Project Milestone Progress</span>
+          <span class="fw-bold text-primary">{{ project.progress_percentage }}% Completed</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar {% if project.progress_percentage == 100 %}bg-success{% else %}bg-primary{% endif %}" role="progressbar" style="width: {{ project.progress_percentage }}%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Progress Card (Members & Guide) -->
+    {% if is_member or is_guide or current_user.is_admin %}
+    <div class="card card-custom p-4 mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-sliders me-2 text-primary"></i>Update Milestone & Progress</h5>
+      <form method="POST" action="{{ url_for('projects.update_progress', project_id=project.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Project Status</label>
+            <select class="form-select" name="status">
+              {% for st in ['Planning', 'In Progress', 'Completed', 'On Hold'] %}
+              <option value="{{ st }}" {% if project.status == st %}selected{% endif %}>{{ st }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Progress Percentage (0-100%)</label>
+            <input type="number" class="form-control" name="progress_percentage" min="0" max="100" value="{{ project.progress_percentage }}" required>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Source Code URL</label>
+            <input type="url" class="form-control" name="repository_url" value="{{ project.repository_url or '' }}" placeholder="https://github.com/...">
+          </div>
+        </div>
+
+        <div class="mt-3 text-end">
+          <button type="submit" class="btn btn-primary btn-sm px-4">Update Project Details</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- Mentor Evaluation & Feedback -->
+    <div class="card card-custom p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-award me-2 text-success"></i>Mentor Review & Feedback</h5>
+      {% if project.feedback %}
+      <div class="alert alert-success border-success-subtle mb-3">
+        <div class="fw-bold small mb-1 text-success"><i class="bi bi-chat-left-quote-fill me-1"></i> Faculty Evaluation Notes:</div>
+        <div class="text-dark small" style="white-space: pre-line;">{{ project.feedback }}</div>
+      </div>
+      {% else %}
+      <p class="text-muted small mb-3">No official mentor feedback recorded yet.</p>
+      {% endif %}
+
+      {% if is_guide %}
+      <form method="POST" action="{{ url_for('projects.give_feedback', project_id=project.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Provide Project Review & Feedback</label>
+          <textarea class="form-control" name="feedback" rows="3" placeholder="Write feedback on technical architecture, code quality, and deliverables...">{{ project.feedback or '' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-success btn-sm px-3">Submit Mentor Review</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Sidebar: Team Members & Meta -->
+  <div class="col-lg-4">
+    <!-- Team Roster -->
+    <div class="card card-custom p-4 mb-4">
+      <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="bi bi-people me-2 text-primary"></i>Team Roster ({{ project.members | length }})</h6>
+      <div class="d-flex flex-column gap-3">
+        {% for m in project.members %}
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold small text-dark">{{ m.student.full_name }}</div>
+            <div class="text-muted" style="font-size: 0.75rem;">{{ m.student.identifier or 'STU-' ~ m.student_id }}</div>
+          </div>
+          <span class="badge bg-light text-dark border">{{ m.role_in_project }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Meta Details -->
+    <div class="card card-custom p-4">
+      <h6 class="fw-bold border-bottom pb-2 mb-3">Project Metadata</h6>
+
+      <div class="d-flex justify-content-between py-2 border-bottom small">
+        <span class="text-muted">Initiated By:</span>
+        <span class="fw-semibold text-dark">{{ project.creator.full_name if project.creator else 'Student' }}</span>
+      </div>
+
+      <div class="d-flex justify-content-between py-2 border-bottom small">
+        <span class="text-muted">Target Deadline:</span>
+        <span class="fw-semibold text-primary">{{ project.deadline.strftime('%b %d, %Y') if project.deadline else 'Flexible' }}</span>
+      </div>
+
+      <div class="d-flex justify-content-between py-2 small">
+        <span class="text-muted">Created:</span>
+        <span>{{ project.created_at.strftime('%b %d, %Y') }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Classes & Timetables - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-mortarboard text-primary me-2"></i>Classes & Timetable Hub</h3>
+    <p class="text-muted small mb-0">Browse class sections, student rosters, and weekly academic schedules</p>
+  </div>
+  {% if current_user.is_admin or current_user.is_teacher %}
+  <div class="mt-3 mt-md-0">
+    <a href="{{ url_for('classes.create') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-circle me-1"></i> Add New Class Section
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Class Sections Cards Grid -->
+<div class="row g-4 mb-5">
+  {% for c in classes %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card card-custom h-100 p-4 d-flex flex-column justify-content-between">
+      <div>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h5 class="fw-bold text-dark mb-0">{{ c.name }}</h5>
+          <span class="badge bg-primary-subtle text-primary">Sem {{ c.semester }} - Sec {{ c.section }}</span>
+        </div>
+        <p class="text-muted small mb-3">
+          <i class="bi bi-building me-1"></i> {{ c.department.name if c.department else 'Engineering' }}
+        </p>
+
+        <div class="small mb-3">
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Academic Year:</span>
+            <span class="fw-semibold">{{ c.academic_year }}</span>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Class Coordinator:</span>
+            <span class="fw-semibold">{{ c.teacher.full_name if c.teacher else 'Not Assigned' }}</span>
+          </div>
+          <div class="d-flex justify-content-between py-1">
+            <span class="text-muted">Enrolled Students:</span>
+            <span class="fw-semibold">{{ c.student_count }} Students</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-2">
+        <a href="{{ url_for('classes.detail', class_id=c.id) }}" class="btn btn-outline-primary btn-sm w-100">
+          <i class="bi bi-eye me-1"></i> View Class & Timetable
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Weekly Schedule Explorer for Selected Day -->
+<div class="card card-custom">
+  <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+    <span class="fw-bold"><i class="bi bi-calendar3 me-2 text-primary"></i>Weekly Schedule Explorer</span>
+    <!-- Day pills -->
+    <div class="btn-group btn-group-sm" role="group">
+      {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+      <a href="{{ url_for('classes.index', day=d) }}" class="btn {% if selected_day == d %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        {{ d[:3] }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if day_schedules %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Time Slot</th>
+            <th>Class Section</th>
+            <th>Subject</th>
+            <th>Instructor</th>
+            <th>Room / Lab</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sch in day_schedules %}
+          <tr>
+            <td class="fw-bold text-primary small">{{ sch.start_time }} - {{ sch.end_time }}</td>
+            <td><span class="badge bg-light text-dark border">{{ sch.classroom.name if sch.classroom else 'All' }}</span></td>
+            <td>
+              <div class="fw-semibold small">{{ sch.subject.name if sch.subject else 'Subject' }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{ sch.subject.code if sch.subject else '' }}</div>
+            </td>
+            <td class="small">{{ sch.teacher.full_name if sch.teacher else 'Faculty' }}</td>
+            <td><span class="badge bg-light text-dark border">{{ sch.room_number }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-calendar-x fs-3 text-secondary d-block mb-1"></i>
+      No lectures scheduled for <strong>{{ selected_day }}</strong>.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

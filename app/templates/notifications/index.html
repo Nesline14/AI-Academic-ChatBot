@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications Center - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-bell text-primary me-2"></i>Notifications Center</h3>
+    <p class="text-muted small mb-0">System alerts, coursework deadlines, and event confirmations</p>
+  </div>
+  {% if notifications %}
+  <form method="POST" action="{{ url_for('notifications.mark_all_read') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-check2-all me-1"></i> Mark All as Read
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card card-custom">
+      <div class="card-body p-0">
+        {% if notifications %}
+        <div class="list-group list-group-flush">
+          {% for n in notifications %}
+          <div class="list-group-item p-3 d-flex justify-content-between align-items-center {% if not n.is_read %}bg-primary-subtle border-start border-3 border-primary{% endif %}">
+            <div class="d-flex align-items-start gap-3">
+              <div class="mt-1">
+                {% if n.category == 'assignment' %}
+                <i class="bi bi-journal-code fs-4 text-warning"></i>
+                {% elif n.category == 'event' %}
+                <i class="bi bi-calendar-event fs-4 text-info"></i>
+                {% elif n.category == 'result' %}
+                <i class="bi bi-award fs-4 text-success"></i>
+                {% elif n.category == 'attendance' %}
+                <i class="bi bi-calendar-check fs-4 text-danger"></i>
+                {% else %}
+                <i class="bi bi-bell fs-4 text-primary"></i>
+                {% endif %}
+              </div>
+              <div>
+                <div class="fw-bold text-dark small mb-1">{{ n.title }}</div>
+                <div class="text-muted small mb-1">{{ n.message }}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">{{ n.created_at.strftime('%b %d, %Y at %I:%M %p') }}</div>
+              </div>
+            </div>
+            <div>
+              {% if n.link_url %}
+              <a href="{{ url_for('notifications.mark_read', notification_id=n.id) }}" class="btn btn-sm btn-primary">
+                View &rarr;
+              </a>
+              {% elif not n.is_read %}
+              <a href="{{ url_for('notifications.mark_read', notification_id=n.id) }}" class="btn btn-sm btn-outline-secondary">
+                Mark Read
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-bell-slash fs-1 text-secondary mb-2"></i>
+          <h5>No Notifications</h5>
+          <p class="small mb-0">You're all caught up with your campus alerts.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

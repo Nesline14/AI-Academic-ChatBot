@@ -1,0 +1,51 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_content %}
+<div>
+  <span class="badge badge-info">Event Registration Confirmed</span>
+  <h1 class="title">You're Registered: {{ event.title }}</h1>
+  
+  <p>Hello <strong>{{ user.full_name }}</strong>,</p>
+  <p>Your registration for the following campus event has been confirmed:</p>
+  
+  <div class="info-box" style="border-left: 4px solid #0284c7;">
+    <div class="info-row">
+      <span class="info-label">Event:</span>
+      <span class="info-value">{{ event.title }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Category:</span>
+      <span class="info-value">{{ event.category }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Date:</span>
+      <span class="info-value" style="color: #0284c7;">{{ event.event_date.strftime('%A, %B %d, %Y') }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Time:</span>
+      <span class="info-value">{{ event.start_time }}{% if event.end_time %} - {{ event.end_time }}{% endif %}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Venue / Location:</span>
+      <span class="info-value">{{ event.location }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Organized By:</span>
+      <span class="info-value">{{ event.organizing_body }}</span>
+    </div>
+  </div>
+
+  <div style="margin: 20px 0;">
+    <h3 style="font-size: 15px; margin-bottom: 8px; color: #0f172a;">Event Description:</h3>
+    <p style="color: #475569; font-size: 14px; margin: 0; line-height: 1.6;">
+      {{ event.description }}
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 24px;">
+    <a href="{{ base_url }}/events/{{ event.id }}" class="btn-action" style="background-color: #0284c7;">
+      View Event Details
+    </a>
+  </div>
+</div>
+{% endblock %}

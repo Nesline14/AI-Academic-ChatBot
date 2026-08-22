@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Assignments & Coursework - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-journal-code text-primary me-2"></i>Assignments & Homework</h3>
+    <p class="text-muted small mb-0">Track academic coursework deadlines, submissions, and evaluations</p>
+  </div>
+  {% if current_user.is_teacher or current_user.is_admin %}
+  <div class="mt-3 mt-md-0">
+    <a href="{{ url_for('assignments.create') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-circle me-1"></i> Create Assignment
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Assignments Grid -->
+<div class="row g-4">
+  {% if assignments %}
+    {% for a in assignments %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-custom h-100 p-4 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-light text-dark border">{{ a.classroom.name if a.classroom else 'General' }}</span>
+            <span class="badge {% if a.is_overdue %}bg-danger-subtle text-danger{% else %}bg-success-subtle text-success{% endif %}">
+              {% if a.is_overdue %}Expired / Past{% else %}Active{% endif %}
+            </span>
+          </div>
+
+          <h5 class="fw-bold text-dark mb-1">{{ a.title }}</h5>
+          <div class="text-muted small mb-3">
+            <i class="bi bi-book me-1"></i> {{ a.subject.name if a.subject else 'General Subject' }}
+          </div>
+
+          <p class="text-muted small mb-3 text-truncate" style="max-height: 48px;">
+            {{ a.description }}
+          </p>
+
+          <div class="small bg-light p-2 rounded mb-3">
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Max Marks:</span>
+              <span class="fw-bold text-dark">{{ a.max_marks }} pts</span>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Due Date:</span>
+              <span class="fw-semibold {% if a.is_overdue %}text-danger{% else %}text-primary{% endif %}">
+                {{ a.due_date.strftime('%b %d, %I:%M %p') }}
+              </span>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Instructor:</span>
+              <span class="fw-semibold">{{ a.teacher.full_name if a.teacher else 'Faculty' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('assignments.detail', assignment_id=a.id) }}" class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-eye me-1"></i> View Assignment
+          </a>
+          {% if current_user.is_teacher and (a.teacher_id == current_user.id or current_user.is_admin) %}
+          <a href="{{ url_for('assignments.submissions_list', assignment_id=a.id) }}" class="btn btn-warning btn-sm text-dark" title="Review Submissions">
+            <i class="bi bi-people"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="col-12">
+    <div class="card card-custom p-5 text-center text-muted">
+      <i class="bi bi-journal-x fs-1 text-secondary mb-2"></i>
+      <h5>No Assignments Available</h5>
+      <p class="small mb-0">There are currently no active coursework assignments for your classes.</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

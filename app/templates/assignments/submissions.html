@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Review Submissions - {{ assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-people text-warning me-2"></i>Student Submissions</h3>
+    <p class="text-muted small mb-0">{{ assignment.title }} &bull; Max Marks: <strong>{{ assignment.max_marks }}</strong></p>
+  </div>
+  <a href="{{ url_for('assignments.detail', assignment_id=assignment.id) }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Assignment</a>
+</div>
+
+<div class="card card-custom">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-list-check me-2"></i>Submitted Work ({{ submissions | length }} records)</span>
+  </div>
+  <div class="card-body p-0">
+    {% if submissions %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Student</th>
+            <th>Roll / ID</th>
+            <th>Submitted At</th>
+            <th>Status</th>
+            <th>Marks (Max {{ assignment.max_marks }})</th>
+            <th>Feedback</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in submissions %}
+          <tr>
+            <td>
+              <div class="fw-semibold small">{{ sub.student.full_name }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{ sub.student.email }}</div>
+            </td>
+            <td class="small">{{ sub.student.identifier or 'N/A' }}</td>
+            <td class="small text-muted">{{ sub.submitted_at.strftime('%b %d, %I:%M %p') }}</td>
+            <td>
+              {% if sub.status == 'Graded' %}
+              <span class="badge bg-success-subtle text-success">Graded</span>
+              {% else %}
+              <span class="badge bg-warning-subtle text-warning">Pending Review</span>
+              {% endif %}
+            </td>
+            <td class="fw-bold text-primary small">
+              {{ sub.marks_obtained if sub.marks_obtained is not none else '-' }} / {{ assignment.max_marks }}
+            </td>
+            <td class="small text-muted text-truncate" style="max-width: 180px;">{{ sub.feedback or '-' }}</td>
+            <td>
+              <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#gradeModal{{ sub.id }}">
+                <i class="bi bi-pencil-square me-1"></i> Grade
+              </button>
+            </td>
+          </tr>
+
+          <!-- Grade Modal -->
+          <div class="modal fade" id="gradeModal{{ sub.id }}" tabindex="-1" aria-labelledby="gradeModalLabel{{ sub.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form method="POST" action="{{ url_for('assignments.grade_submission', submission_id=sub.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="gradeModalLabel{{ sub.id }}">Grade {{ sub.student.full_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold text-muted">Submitted Solution Text:</label>
+                      <div class="bg-light p-3 rounded border small" style="white-space: pre-line; max-height: 180px; overflow-y: auto;">
+                        {{ sub.submission_text or 'No written text provided.' }}
+                      </div>
+                    </div>
+
+                    {% if sub.file_path %}
+                    <div class="mb-3">
+                      <a href="{{ url_for('static', filename='uploads/submissions/' ~ sub.file_path) }}" class="btn btn-sm btn-outline-primary" download>
+                        <i class="bi bi-download me-1"></i> Download Solution File
+                      </a>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Score Awarded (Max {{ assignment.max_marks }}) *</label>
+                      <input type="number" step="0.5" min="0" max="{{ assignment.max_marks }}" class="form-control" name="marks_obtained" value="{{ sub.marks_obtained or 0 }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Feedback / Evaluation Notes</label>
+                      <textarea class="form-control" name="feedback" rows="3" placeholder="Provide constructive feedback for the student...">{{ sub.feedback or '' }}</textarea>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success btn-sm">Save Grade</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-inbox fs-2 text-secondary d-block mb-2"></i>
+      No students have submitted this assignment yet.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_content %}
+<div>
+  <span class="badge badge-danger">Attendance Notice</span>
+  <h1 class="title">Attendance Alert: {{ subject.name if subject else 'Academic Attendance' }}</h1>
+  
+  <p>Hello <strong>{{ user.full_name }}</strong>,</p>
+  <p>This is an automated alert regarding your class attendance in the portal.</p>
+  
+  <div class="info-box" style="border-left: 4px solid #ef4444; background-color: #fff1f2;">
+    {% if attendance_record %}
+    <div class="info-row" style="border-bottom: 1px solid #fee2e2;">
+      <span class="info-label" style="color: #991b1b;">Recorded Status:</span>
+      <span class="info-value" style="color: #b91c1c;">{{ attendance_record.status }}</span>
+    </div>
+    <div class="info-row" style="border-bottom: 1px solid #fee2e2;">
+      <span class="info-label" style="color: #991b1b;">Date:</span>
+      <span class="info-value" style="color: #991b1b;">{{ attendance_record.date.strftime('%A, %b %d, %Y') }}</span>
+    </div>
+    <div class="info-row" style="border-bottom: 1px solid #fee2e2;">
+      <span class="info-label" style="color: #991b1b;">Subject:</span>
+      <span class="info-value" style="color: #991b1b;">{{ attendance_record.subject.name }} ({{ attendance_record.subject.code }})</span>
+    </div>
+    {% endif %}
+    {% if overall_percentage is not none %}
+    <div class="info-row" style="border-bottom: 1px solid #fee2e2;">
+      <span class="info-label" style="color: #991b1b;">Your Current Attendance:</span>
+      <span class="info-value" style="color: #b91c1c; font-size: 16px;">{{ overall_percentage }}%</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label" style="color: #991b1b;">Minimum Required:</span>
+      <span class="info-value" style="color: #991b1b;">75.0%</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <p style="font-size: 14px; color: #475569;">
+    Please note that a minimum of <strong>75% attendance</strong> is mandatory to remain eligible for end-semester university examinations. Please consult your course instructor if you have genuine medical or leave justifications.
+  </p>
+
+  <div style="text-align: center; margin-top: 24px;">
+    <a href="{{ base_url }}/attendance" class="btn-action" style="background-color: #dc2626;">
+      Check Attendance Records
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_content %}
+<div>
+  <span class="badge badge-success">System Test</span>
+  <h1 class="title">Email System Verification</h1>
+  
+  <p>Hello <strong>{{ user.full_name }}</strong>,</p>
+  <p>This is a test notification confirming that the <strong>CampusConnect Email Notification System</strong> is successfully configured and working!</p>
+  
+  <div class="info-box" style="border-left: 4px solid #10b981;">
+    <div class="info-row">
+      <span class="info-label">Recipient:</span>
+      <span class="info-value">{{ user.email }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Account Role:</span>
+      <span class="info-value">{{ user.role_display }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">SMTP Server:</span>
+      <span class="info-value">{{ smtp_server }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Sent At:</span>
+      <span class="info-value">{{ sent_time }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Delivery Mode:</span>
+      <span class="info-value">{{ delivery_mode }}</span>
+    </div>
+  </div>
+
+  <p style="font-size: 14px; color: #475569;">
+    You will receive automatic email updates for announcements, new assignments, upcoming deadlines, exam results, attendance alerts, and event registrations according to your preferences.
+  </p>
+
+  <div style="text-align: center; margin-top: 24px;">
+    <a href="{{ base_url }}/dashboard" class="btn-action">
+      Go to Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

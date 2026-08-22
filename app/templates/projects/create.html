@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Project Proposal - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-kanban text-primary me-2"></i>Submit Project Proposal</h3>
+    <p class="text-muted small mb-0">Register academic capstone, mini-project, or research initiative</p>
+  </div>
+  <a href="{{ url_for('projects.index') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Projects</a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card card-custom p-4 shadow-sm">
+      <form method="POST" action="{{ url_for('projects.create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Project Title *</label>
+            <input type="text" class="form-control" name="title" placeholder="e.g. Smart Campus IoT Energy & HVAC Optimization" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Technology Category *</label>
+            <select class="form-select" name="category" required>
+              {% for cat in categories %}
+              <option value="{{ cat }}">{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Project Guide / Faculty Mentor</label>
+            <select class="form-select" name="guide_id">
+              <option value="">-- Choose Faculty Mentor --</option>
+              {% for t in teachers %}
+              <option value="{{ t.id }}">{{ t.full_name }} ({{ t.department.name if t.department else 'Faculty' }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Target Completion Deadline</label>
+            <input type="date" class="form-control" name="deadline">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Repository / Source Code Link (GitHub/GitLab)</label>
+            <input type="url" class="form-control" name="repository_url" placeholder="https://github.com/user/project">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Invite Team Members (Students)</label>
+            <select class="form-select" name="team_members" multiple size="4">
+              {% for s in students %}
+              {% if s.id != current_user.id %}
+              <option value="{{ s.id }}">{{ s.full_name }} ({{ s.identifier }}) - Sem {{ s.semester }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            <div class="form-text small">Hold Ctrl/Cmd to select multiple student collaborators.</div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Project Abstract / Problem Statement *</label>
+            <textarea class="form-control" name="description" rows="5" placeholder="Describe the objectives, architecture, hardware/software components, and anticipated outcomes of your project..." required></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 text-end">
+          <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+            <i class="bi bi-check2-circle me-1"></i> Register Project Proposal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_content %}
+<div>
+  <span class="badge badge-warning">New Coursework Assignment</span>
+  <h1 class="title">{{ assignment.title }}</h1>
+  
+  <p>Hello <strong>{{ user.full_name }}</strong>,</p>
+  <p>A new assignment has been assigned for <strong>{{ assignment.subject.name }}</strong> ({{ assignment.classroom.name }}).</p>
+  
+  <div class="info-box">
+    <div class="info-row">
+      <span class="info-label">Subject:</span>
+      <span class="info-value">{{ assignment.subject.name }} ({{ assignment.subject.code }})</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Faculty:</span>
+      <span class="info-value">{{ assignment.teacher.full_name }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Due Date:</span>
+      <span class="info-value" style="color: #dc2626;">{{ assignment.due_date.strftime('%b %d, %Y at %I:%M %p') }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Maximum Marks:</span>
+      <span class="info-value">{{ assignment.max_marks }} pts</span>
+    </div>
+  </div>
+
+  <div style="margin: 20px 0;">
+    <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a;">Assignment Details:</h3>
+    <p style="white-space: pre-line; color: #475569; background: #f8fafc; padding: 12px 16px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 14px;">
+      {{ assignment.description }}
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 24px;">
+    <a href="{{ base_url }}/assignments/{{ assignment.id }}" class="btn-action">
+      View Assignment & Submit
+    </a>
+  </div>
+</div>
+{% endblock %}

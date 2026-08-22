@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Enter Student Marks - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-file-earmark-plus text-primary me-2"></i>Enter Subject Marks</h3>
+    <p class="text-muted small mb-0">Record internal assessment, assignment, and semester exam marks</p>
+  </div>
+  <a href="{{ url_for('results.index') }}" class="btn btn-outline-secondary btn-sm">&larr; Back to Results</a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card card-custom p-4 shadow-sm">
+      <form method="POST" action="{{ url_for('results.add_result') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Student *</label>
+            <select class="form-select" name="student_id" required>
+              <option value="">-- Choose Student --</option>
+              {% for s in students %}
+              <option value="{{ s.id }}">{{ s.full_name }} ({{ s.identifier }}) - Sem {{ s.semester }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Subject *</label>
+            <select class="form-select" name="subject_id" required>
+              <option value="">-- Choose Subject --</option>
+              {% for sub in subjects %}
+              <option value="{{ sub.id }}">{{ sub.name }} ({{ sub.code }}) - Sem {{ sub.semester }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Class Section</label>
+            <select class="form-select" name="class_id">
+              <option value="">-- Optional Class --</option>
+              {% for c in classes %}
+              <option value="{{ c.id }}">{{ c.name }} (Sem {{ c.semester }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Semester</label>
+            <select class="form-select" name="semester">
+              {% for sem in range(1, 9) %}
+              <option value="{{ sem }}">Semester {{ sem }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-12"><hr class="my-2 text-muted"></div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Internal Assessment (Max 30)</label>
+            <input type="number" step="0.5" min="0" max="30" class="form-control" name="internal_marks" id="internal_marks" value="0" oninput="calcTotal()">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Assignment / Lab (Max 20)</label>
+            <input type="number" step="0.5" min="0" max="20" class="form-control" name="assignment_marks" id="assignment_marks" value="0" oninput="calcTotal()">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">End Semester Exam (Max 50)</label>
+            <input type="number" step="0.5" min="0" max="50" class="form-control" name="exam_marks" id="exam_marks" value="0" oninput="calcTotal()">
+          </div>
+
+          <div class="col-12">
+            <div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-0">
+              <span class="small fw-semibold text-muted">Calculated Total (Max 100):</span>
+              <span class="fw-bold fs-5 text-primary" id="total_display">0.0 / 100</span>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Evaluation Remarks / Feedback</label>
+            <textarea class="form-control" name="remarks" rows="2" placeholder="e.g. Excellent analytical performance in lab and exam..."></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 text-end">
+          <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+            <i class="bi bi-save me-1"></i> Save & Publish Result
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function calcTotal() {
+  const intM = parseFloat(document.getElementById('internal_marks').value) || 0;
+  const asgM = parseFloat(document.getElementById('assignment_marks').value) || 0;
+  const exmM = parseFloat(document.getElementById('exam_marks').value) || 0;
+  const tot = intM + asgM + exmM;
+  document.getElementById('total_display').textContent = tot.toFixed(1) + ' / 100';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_content %}
+<div>
+  <span class="badge badge-success">Assignment Graded</span>
+  <h1 class="title">Feedback Available: {{ submission.assignment.title }}</h1>
+  
+  <p>Hello <strong>{{ user.full_name }}</strong>,</p>
+  <p>Your submission for <strong>{{ submission.assignment.title }}</strong> in <strong>{{ submission.assignment.subject.name }}</strong> has been graded.</p>
+  
+  <div class="info-box" style="border-left: 4px solid #10b981;">
+    <div class="info-row">
+      <span class="info-label">Score Received:</span>
+      <span class="info-value" style="color: #059669; font-size: 18px;">{{ submission.marks_obtained }} / {{ submission.assignment.max_marks }} pts</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Status:</span>
+      <span class="info-value">{{ submission.status }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Submitted On:</span>
+      <span class="info-value">{{ submission.submitted_at.strftime('%b %d, %Y at %I:%M %p') if submission.submitted_at else 'N/A' }}</span>
+    </div>
+  </div>
+
+  {% if submission.feedback %}
+  <div style="margin: 20px 0;">
+    <h3 style="font-size: 15px; margin-bottom: 8px; color: #0f172a;">Teacher Feedback:</h3>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; color: #334155; font-style: italic; font-size: 14px;">
+      "{{ submission.feedback }}"
+    </div>
+  </div>
+  {% endif %}
+
+  <div style="text-align: center; margin-top: 24px;">
+    <a href="{{ base_url }}/assignments/{{ submission.assignment_id }}" class="btn-action">
+      View Graded Submission
+    </a>
+  </div>
+</div>
+{% endblock %}

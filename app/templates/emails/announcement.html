@@ -1,0 +1,42 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_content %}
+<div>
+  <span class="badge {% if announcement.priority == 'Urgent' %}badge-danger{% elif announcement.priority == 'High' %}badge-warning{% else %}badge-primary{% endif %}">
+    {{ announcement.category }} &bull; {{ announcement.priority }} Priority
+  </span>
+  <h1 class="title">{{ announcement.title }}</h1>
+  
+  <p>Hello <strong>{{ user.full_name }}</strong>,</p>
+  <p>A new announcement has been published on the campus portal:</p>
+  
+  <div class="info-box" style="border-left: 4px solid #4f46e5;">
+    <p style="white-space: pre-line; color: #334155; margin: 0; font-size: 15px;">
+      {{ announcement.content }}
+    </p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-row">
+      <span class="info-label">Published By:</span>
+      <span class="info-value">{{ announcement.author.full_name }} ({{ announcement.author.role_display }})</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Date & Time:</span>
+      <span class="info-value">{{ announcement.created_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
+    </div>
+    {% if announcement.expiry_date %}
+    <div class="info-row">
+      <span class="info-label">Valid Until:</span>
+      <span class="info-value">{{ announcement.expiry_date.strftime('%b %d, %Y') }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div style="text-align: center; margin-top: 24px;">
+    <a href="{{ base_url }}/announcements/{{ announcement.id }}" class="btn-action">
+      View Full Announcement
+    </a>
+  </div>
+</div>
+{% endblock %}

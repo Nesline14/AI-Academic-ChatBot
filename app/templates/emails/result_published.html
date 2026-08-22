@@ -1,0 +1,46 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_content %}
+<div>
+  <span class="badge badge-primary">Examination Results</span>
+  <h1 class="title">New Result Published: {{ result.subject.name }}</h1>
+  
+  <p>Hello <strong>{{ user.full_name }}</strong>,</p>
+  <p>Your examination grade for <strong>{{ result.subject.name }} (Semester {{ result.semester }})</strong> has been computed and published by faculty.</p>
+  
+  <div class="info-box" style="border-left: 4px solid #4f46e5;">
+    <div class="info-row">
+      <span class="info-label">Subject:</span>
+      <span class="info-value">{{ result.subject.name }} ({{ result.subject.code }})</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Semester:</span>
+      <span class="info-value">Semester {{ result.semester }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Grade Awarded:</span>
+      <span class="info-value" style="color: #4f46e5; font-size: 18px;">{{ result.grade }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">GPA Points:</span>
+      <span class="info-value">{{ result.gpa_points }} / 10.0</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Internal / Exam / Total:</span>
+      <span class="info-value">{{ result.internal_marks }} + {{ result.exam_marks }} = {{ result.total_marks }} / {{ result.max_marks }}</span>
+    </div>
+    {% if result.remarks %}
+    <div class="info-row">
+      <span class="info-label">Remarks:</span>
+      <span class="info-value">{{ result.remarks }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div style="text-align: center; margin-top: 24px;">
+    <a href="{{ base_url }}/results" class="btn-action">
+      View Full Grade Sheet & CGPA
+    </a>
+  </div>
+</div>
+{% endblock %}

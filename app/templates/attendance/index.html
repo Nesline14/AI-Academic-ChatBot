@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Management - CampusConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+  <div>
+    <h3 class="fw-bold mb-1"><i class="bi bi-calendar-check text-success me-2"></i>Attendance Management</h3>
+    <p class="text-muted small mb-0">Record, track, and monitor student academic attendance</p>
+  </div>
+  {% if current_user.is_teacher or current_user.is_admin %}
+  <div class="mt-3 mt-md-0">
+    <a href="{{ url_for('attendance.mark') }}" class="btn btn-success btn-sm">
+      <i class="bi bi-check2-square me-1"></i> Mark Daily Attendance
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Filter Bar -->
+<div class="card card-custom p-3 mb-4">
+  <form method="GET" action="{{ url_for('attendance.index') }}" class="row g-3 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Class / Section</label>
+      <select class="form-select form-select-sm" name="class_id">
+        <option value="">All Classes</option>
+        {% for c in classes %}
+        <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>{{ c.name }} (Sem {{ c.semester }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Subject</label>
+      <select class="form-select form-select-sm" name="subject_id">
+        <option value="">All Subjects</option>
+        {% for s in subjects %}
+        <option value="{{ s.id }}" {% if selected_subject_id == s.id %}selected{% endif %}>{{ s.name }} ({{ s.code }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Date</label>
+      <input type="date" class="form-control form-control-sm" name="date" value="{{ selected_date_str }}">
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-filter"></i> Filter</button>
+      <a href="{{ url_for('attendance.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i></a>
+    </div>
+  </form>
+</div>
+
+<!-- Attendance Records Table -->
+<div class="card card-custom">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-list-check me-2"></i>Attendance Logs ({{ records | length }} entries)</span>
+  </div>
+  <div class="card-body p-0">
+    {% if records %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>Date</th>
+            <th>Student</th>
+            <th>Roll / ID</th>
+            <th>Class</th>
+            <th>Subject</th>
+            <th>Status</th>
+            <th>Marked By</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+          <tr>
+            <td class="small fw-semibold">{{ r.date.strftime('%b %d, %Y') }}</td>
+            <td class="small fw-semibold">{{ r.student.full_name if r.student else 'Unknown' }}</td>
+            <td class="small text-muted">{{ r.student.identifier if r.student else 'N/A' }}</td>
+            <td><span class="badge bg-light text-dark border">{{ r.classroom.name if r.classroom else 'General' }}</span></td>
+            <td class="small">{{ r.subject.name if r.subject else 'All' }}</td>
+            <td>
+              {% if r.status == 'Present' %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i>Present</span>
+              {% elif r.status == 'Absent' %}
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle me-1"></i>Absent</span>
+              {% else %}
+              <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-clock me-1"></i>Late</span>
+              {% endif %}
+            </td>
+            <td class="small text-muted">{{ r.marked_by.full_name if r.marked_by else 'Faculty' }}</td>
+            <td class="small text-muted">{{ r.remarks or '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-calendar-x fs-2 text-secondary d-block mb-2"></i>
+      No attendance records found matching the selected criteria.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
