@@ -123,3 +123,35 @@ def create_app(config_name=None):
     app.register_blueprint(api_bp)
 
     return app
+
+
+# Module-level application instance for Gunicorn / WSGI runners (e.g. gunicorn app:app)
+app = create_app(os.environ.get('FLASK_ENV', 'development'))
+
+with app.app_context():
+    try:
+        from seed_data import seed_database
+        from sqlalchemy import text, inspect
+        db.create_all()
+        inspector = inspect(db.engine)
+        if 'users' in inspector.get_table_names():
+            existing_cols = [c['name'] for c in inspector.get_columns('users')]
+            user_new_cols = [
+                ('email_notifications_enabled', 'BOOLEAN DEFAULT 1'),
+                ('email_announcements', 'BOOLEAN DEFAULT 1'),
+                ('email_assignments', 'BOOLEAN DEFAULT 1'),
+                ('email_results', 'BOOLEAN DEFAULT 1'),
+                ('email_attendance', 'BOOLEAN DEFAULT 1'),
+                ('email_events', 'BOOLEAN DEFAULT 1'),
+            ]
+            for col_name, col_def in user_new_cols:
+                if col_name not in existing_cols:
+                    try:
+                        db.session.execute(text(f'ALTER TABLE users ADD COLUMN {col_name} {col_def}'))
+                        db.session.commit()
+                    except Exception:
+                        db.session.rollback()
+        seed_database()
+    except Exception as e:
+        print(f"[CampusConnect init warning]: {e}")
+
